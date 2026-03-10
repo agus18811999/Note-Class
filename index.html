@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Class - Premium Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.1)',
+                        glassBorder: 'rgba(255, 255, 255, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar untuk kesan premium */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+        
+        /* Animasi Pop-up */
+        .modal-enter { animation: modalFadeIn 0.4s ease forwards; }
+        .modal-leave { animation: modalFadeOut 0.4s ease forwards; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes modalFadeOut {
+            from { opacity: 1; transform: scale(1) translateY(0); }
+            to { opacity: 0; transform: scale(0.95) translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-800 to-slate-900 min-h-screen text-white font-sans overflow-x-hidden selection:bg-pink-500 selection:text-white">
+
+    <header class="sticky top-0 z-40 bg-white/10 backdrop-blur-lg border-b border-white/20 shadow-lg">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-book-open text-xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-indigo-300">
+                    Note Class
+                </h1>
+            </div>
+
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-80 group">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 group-focus-within:text-pink-400 transition-colors"></i>
+                    <input type="text" id="searchInput" placeholder="Cari Mata Kuliah atau Tugas..." 
+                        class="w-full bg-white/5 border border-white/20 rounded-full py-2 pl-12 pr-4 text-sm text-white placeholder-white/50 focus:outline-none focus:border-pink-400 focus:bg-white/10 transition-all shadow-inner">
+                </div>
+                <button onclick="openModal()" class="shrink-0 bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 text-white px-6 py-2 rounded-full font-medium transition-all shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:shadow-[0_0_25px_rgba(236,72,153,0.6)] flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Create Notes
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+       <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-white/50">
+            <i class="fa-solid fa-folder-open text-6xl mb-4 text-white/20"></i>
+            <p class="text-lg">Belum ada catatan. Klik "Create Notes" untuk memulai.</p>
+        </div>
+    </main>
+
+    <div id="noteModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="modalContent" class="bg-slate-800/80 backdrop-blur-xl border border-white/20 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+            
+            <div class="relative h-40 shrink-0">
+                <img id="modalHeaderImg" src="https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=1000" class="w-full h-full object-cover opacity-60" alt="Header">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-800/90 to-transparent"></div>
+                <div class="absolute bottom-4 left-6 right-6 flex justify-between items-end">
+                    <h2 id="modalTitle" class="text-2xl font-bold text-white shadow-sm">Form Catatan Kelas</h2>
+                    <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <form id="noteForm" class="space-y-6">
+                    <input type="hidden" id="noteId">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                            <h3 class="text-pink-300 font-semibold border-b border-white/10 pb-2"><i class="fa-solid fa-user-graduate mr-2"></i>Data Mahasiswa</h3>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Nama Mahasiswa</label>
+                                <input type="text" id="namaMahasiswa" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">NIM Mahasiswa</label>
+                                <input type="text" id="nimMahasiswa" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Nama Universitas</label>
+                                <input type="text" id="namaUniversitas" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs text-white/70 mb-1">Fakultas</label>
+                                    <input type="text" id="namaFakultas" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-white/70 mb-1">Prodi</label>
+                                    <input type="text" id="namaProdi" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                            <h3 class="text-indigo-300 font-semibold border-b border-white/10 pb-2"><i class="fa-solid fa-chalkboard-user mr-2"></i>Data Perkuliahan</h3>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Nama Mata Kuliah</label>
+                                <input type="text" id="namaMataKuliah" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Nama Dosen Pengajar</label>
+                                <input type="text" id="namaDosen" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Opsi Tugas</label>
+                                <select id="opsiTugas" required onchange="updateModalImage()" class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 text-white [&>option]:bg-slate-800">
+                                    <option value="Materi">Materi</option>
+                                    <option value="Tugas Harian">Tugas Harian</option>
+                                    <option value="Tugas Case">Tugas Case</option>
+                                    <option value="Tugas UTS">Tugas UTS</option>
+                                    <option value="Tugas UAS">Tugas UAS</option>
+                                    <option value="Tugas Kelompok">Tugas Kelompok</option>
+                                    <option value="Tugas Individu">Tugas Individu</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/70 mb-1">Waktu (Tgl & Jam detail)</label>
+                                <input type="datetime-local" step="1" id="waktu" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 [color-scheme:dark]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs text-white/70 mb-1">Metode</label>
+                                    <select id="metodeKuliah" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 [&>option]:bg-slate-800">
+                                        <option value="Online">Online</option>
+                                        <option value="Offline">Offline</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-white/70 mb-1">Jenis</label>
+                                    <select id="jenisKuliah" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400 [&>option]:bg-slate-800">
+                                        <option value="Teori">Teori</option>
+                                        <option value="Praktik">Praktik</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                        <h3 class="text-fuchsia-300 font-semibold border-b border-white/10 pb-2"><i class="fa-solid fa-pen-nib mr-2"></i>Detail & Catatan</h3>
+                        <div>
+                            <label class="block text-xs text-white/70 mb-1">Deskripsi Mata Kuliah</label>
+                            <textarea id="deskripsiMk" rows="2" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-white/70 mb-1">Catatan Kuliah (Gunakan baris baru untuk sub-bab)</label>
+                            <textarea id="catatanKuliah" rows="5" required class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-white/70 mb-1">Lanjutan Tugas</label>
+                            <textarea id="lanjutanTugas" rows="2" class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"></textarea>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            
+            <div class="p-4 border-t border-white/10 bg-black/20 flex justify-end gap-3 shrink-0">
+                <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg text-sm font-medium text-white/70 hover:bg-white/10 transition-colors">Batal</button>
+                <button type="button" onclick="submitForm()" class="px-6 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-pink-500 to-indigo-500 hover:from-pink-400 hover:to-indigo-400 shadow-lg transition-all">
+                    <i class="fa-solid fa-save mr-2"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="fixed inset-0 z-[60] hidden bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-white/10 border-t-pink-500 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(236,72,153,0.5)]"></div>
+        <h2 class="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-indigo-300">Memproses Catatan...</h2>
+        <p class="text-white/50 text-sm mt-2 animate-pulse">Merapikan format paragraf & sub-bab</p>
+    </div>
+
+    <script>
+        // Mapping Gambar Premium Berdasarkan Opsi Tugas
+        const imageMap = {
+            "Materi": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600",
+            "Tugas Harian": "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=600",
+            "Tugas Case": "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&q=80&w=600",
+            "Tugas UTS": "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=600",
+            "Tugas UAS": "https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&q=80&w=600",
+            "Tugas Kelompok": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=600",
+            "Tugas Individu": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=600"
+        };
+
+        let notes = JSON.parse(localStorage.getItem('noteClassData')) || [];
+
+        // Inisialisasi awal
+        document.addEventListener("DOMContentLoaded", () => {
+            renderCards();
+            
+            // Event Listener untuk Search
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                renderCards(e.target.value.toLowerCase());
+            });
+        });
+
+        function updateModalImage() {
+            const selected = document.getElementById('opsiTugas').value;
+            document.getElementById('modalHeaderImg').src = imageMap[selected];
+        }
+
+        function openModal(noteId = null) {
+            const modal = document.getElementById('noteModal');
+            const content = document.getElementById('modalContent');
+            const form = document.getElementById('noteForm');
+            
+            form.reset();
+            document.getElementById('noteId').value = '';
+            
+            if (noteId) {
+                // Mode Edit / Detail
+                const note = notes.find(n => n.id === noteId);
+                if (note) {
+                    document.getElementById('modalTitle').innerText = "Detail & Edit Catatan";
+                    document.getElementById('noteId').value = note.id;
+                    document.getElementById('namaMahasiswa').value = note.namaMahasiswa;
+                    document.getElementById('nimMahasiswa').value = note.nimMahasiswa;
+                    document.getElementById('namaMataKuliah').value = note.namaMataKuliah;
+                    document.getElementById('namaDosen').value = note.namaDosen;
+                    document.getElementById('namaUniversitas').value = note.namaUniversitas;
+                    document.getElementById('namaFakultas').value = note.namaFakultas;
+                    document.getElementById('namaProdi').value = note.namaProdi;
+                    document.getElementById('opsiTugas').value = note.opsiTugas;
+                    document.getElementById('waktu').value = note.waktu;
+                    document.getElementById('metodeKuliah').value = note.metodeKuliah;
+                    document.getElementById('jenisKuliah').value = note.jenisKuliah;
+                    document.getElementById('deskripsiMk').value = note.deskripsiMk;
+                    document.getElementById('catatanKuliah').value = note.catatanKuliahRaw; // Mengambil raw data agar mudah diedit
+                    document.getElementById('lanjutanTugas').value = note.lanjutanTugas;
+                }
+            } else {
+                // Mode Create
+                document.getElementById('modalTitle').innerText = "Create New Note";
+            }
+            
+            updateModalImage();
+            modal.classList.remove('hidden');
+            content.classList.remove('modal-leave');
+            content.classList.add('modal-enter');
+        }
+
+        function closeModal() {
+            const content = document.getElementById('modalContent');
+            content.classList.remove('modal-enter');
+            content.classList.add('modal-leave');
+            setTimeout(() => {
+                document.getElementById('noteModal').classList.add('hidden');
+            }, 300); // Sinkron dengan durasi animasi CSS
+        }
+
+        // Helper: Merapikan format catatan (Paragraf Rata Kanan Kiri, Sub-bab rata kiri)
+        function formatCatatan(rawText) {
+            const lines = rawText.split('\n');
+            let formattedHTML = '';
+            
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                if (trimmed.length === 0) return; // Skip baris kosong
+                
+                // Asumsi: Jika baris pendek (< 40 karakter) dan tidak diakhiri titik, itu adalah Sub-bab
+                if (trimmed.length < 40 && !trimmed.endsWith('.')) {
+                    formattedHTML += `<h4 class="text-indigo-300 font-semibold mt-4 mb-1 text-left">${trimmed}</h4>`;
+                } else {
+                    formattedHTML += `<p class="text-white/80 text-justify mb-2 leading-relaxed">${trimmed}</p>`;
+                }
+            });
+            return formattedHTML;
+        }
+
+        function submitForm() {
+            const form = document.getElementById('noteForm');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Tampilkan Loading Overlay
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            setTimeout(() => {
+                const noteId = document.getElementById('noteId').value;
+                const rawCatatan = document.getElementById('catatanKuliah').value;
+                
+                const noteData = {
+                    id: noteId ? noteId : 'note_' + Date.now(),
+                    namaMahasiswa: document.getElementById('namaMahasiswa').value,
+                    nimMahasiswa: document.getElementById('nimMahasiswa').value,
+                    namaMataKuliah: document.getElementById('namaMataKuliah').value,
+                    namaDosen: document.getElementById('namaDosen').value,
+                    namaUniversitas: document.getElementById('namaUniversitas').value,
+                    namaFakultas: document.getElementById('namaFakultas').value,
+                    namaProdi: document.getElementById('namaProdi').value,
+                    opsiTugas: document.getElementById('opsiTugas').value,
+                    waktu: document.getElementById('waktu').value,
+                    metodeKuliah: document.getElementById('metodeKuliah').value,
+                    jenisKuliah: document.getElementById('jenisKuliah').value,
+                    deskripsiMk: document.getElementById('deskripsiMk').value,
+                    catatanKuliahRaw: rawCatatan,
+                    catatanKuliahFormatted: formatCatatan(rawCatatan), // Hasil formatting
+                    lanjutanTugas: document.getElementById('lanjutanTugas').value,
+                };
+
+                if (noteId) {
+                    // Update eksisting
+                    const index = notes.findIndex(n => n.id === noteId);
+                    if(index !== -1) notes[index] = noteData;
+                } else {
+                    // Buat baru
+                    notes.unshift(noteData); // Tambah di awal
+                }
+
+                // Simpan & Render
+                localStorage.setItem('noteClassData', JSON.stringify(notes));
+                renderCards();
+                
+                // Tutup loading dan modal
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                closeModal();
+            }, 1500); // Simulasi waktu pemrosesan agar terasa premium
+        }
+
+     function renderCards(filterText = '') {
+    const grid = document.getElementById('dashboardGrid');
+    const emptyState = document.getElementById('emptyState');
+    grid.innerHTML = '';
+
+    const filteredNotes = notes.filter(n => 
+        n.namaMataKuliah.toLowerCase().includes(filterText) || 
+        n.opsiTugas.toLowerCase().includes(filterText)
+    );
+
+    if (filteredNotes.length === 0) {
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+    } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+
+        filteredNotes.forEach(note => {
+            // Format waktu tampilan
+            const dateObj = new Date(note.waktu);
+            const formattedDate = dateObj.toLocaleString('id-ID', { 
+                weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+
+            const imgUrl = imageMap[note.opsiTugas];
+
+            const card = document.createElement('div');
+            // Menambah tinggi card menjadi min-h-[420px] agar lebih besar
+            card.className = "group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col min-h-[420px]";
+            
+            card.innerHTML = `
+                <div class="h-48 relative overflow-hidden shrink-0" onclick="openModal('${note.id}')">
+                    <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80" alt="Cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                    <span class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm border border-white/20 text-xs px-3 py-1 rounded-full text-pink-300 font-medium z-10">
+                        ${note.opsiTugas}
+                    </span>
+                </div>
+
+                <div class="absolute top-3 left-3 flex gap-2 opacity-100 z-10">
+                    <button onclick="duplicateNote('${note.id}', event)" class="w-8 h-8 rounded-full bg-indigo-500/80 hover:bg-indigo-500 backdrop-blur-md flex items-center justify-center text-white shadow-lg transition-colors" title="Duplicate">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button onclick="deleteNote('${note.id}', event)" class="w-8 h-8 rounded-full bg-rose-500/80 hover:bg-rose-500 backdrop-blur-md flex items-center justify-center text-white shadow-lg transition-colors" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+                
+                <div class="p-5 flex-1 flex flex-col" onclick="openModal('${note.id}')">
+                    <h3 class="text-xl font-bold text-white mb-1 line-clamp-2">${note.namaMataKuliah}</h3>
+                    <p class="text-xs text-indigo-300 mb-4"><i class="fa-regular fa-clock mr-1"></i>${formattedDate}</p>
+                    
+                    <div class="text-sm text-white/60 line-clamp-3 mb-4 flex-1">
+                        ${note.deskripsiMk}
+                    </div>
+
+                    <hr class="border-white/10 w-full mb-4">
+                    
+                    <div class="flex justify-between items-end mt-auto">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-white/10 border border-white/5 px-2.5 py-1 rounded text-xs text-white/80">${note.metodeKuliah}</span>
+                            <span class="bg-white/10 border border-white/5 px-2.5 py-1 rounded text-xs text-white/80">${note.jenisKuliah}</span>
+                        </div>
+                        
+                        <div class="text-sm text-white/80 flex items-center gap-2 bg-black/20 px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-user-tie text-pink-400"></i>
+                            <span class="truncate max-w-[120px] font-medium">${note.namaDosen}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+}
+        function deleteNote(id, event) {
+            event.stopPropagation(); // Mencegah modal terbuka
+            if(confirm('Apakah kamu yakin ingin menghapus catatan ini selamanya?')) {
+                notes = notes.filter(n => n.id !== id);
+                localStorage.setItem('noteClassData', JSON.stringify(notes));
+                renderCards();
+            }
+        }
+
+        function duplicateNote(id, event) {
+            event.stopPropagation(); // Mencegah modal terbuka
+            const noteToCopy = notes.find(n => n.id === id);
+            if(noteToCopy) {
+                const newNote = { ...noteToCopy };
+                newNote.id = 'note_' + Date.now();
+                newNote.namaMataKuliah = newNote.namaMataKuliah + " (Copy)";
+                notes.unshift(newNote);
+                localStorage.setItem('noteClassData', JSON.stringify(notes));
+                renderCards();
+            }
+        }
+    </script>
+</body>
+</html>
